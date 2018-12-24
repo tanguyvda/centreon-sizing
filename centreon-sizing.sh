@@ -47,7 +47,7 @@ passive_service_count=$(mysql -h $database_host -u $database_user -p$database_pa
 active_service_count=$(mysql -h $database_host -u $database_user -p$database_passwd -s -N -e "SELECT count(*) FROM centreon_storage.services WHERE enabled='1' AND active_checks")
 metric_count=$(mysql -h $database_host -u $database_user -p$database_passwd -s -N -e "SELECT count(*) FROM centreon_storage.metrics")
 total_service_count=$(( $active_service_count+$passive_service_count ))
-if [ "$1" == "ems" ]; then
+if [ ! -z "$bam_installed" ]; then
     ba_count=$(mysql -h $database_host -u $database_user -p$database_passwd -s -N -e "SELECT count(*) FROM centreon.mod_bam")
 else
     ba_count=0
@@ -72,7 +72,9 @@ if [ "$database_host" == "127.0.0.1" ] || [ "$database_host" == "localhost" ];th
         log_a_service_ten_part_size=`stat -c "%Y %s" /var/lib/mysql/centreon_storage/log_archive_service* | awk -v old_date="$(date --date='30 day ago' +%s )" -v new_date="$(date --date='20 day ago' +%s)" -F " " '{if ($1>=old_date && $1<=new_date)size+=$2; print size}' | tail -1`
 
 
-elif [ "$database_host" != "127.0.0.1" ] && [ "$database_host" != "localhost" ] && [ "$my_ssh" != "no" ];then
+elif [ "$database_host" != "127.0.0.1" ] && [ "$database_host" != "localhost" ];then
+        echo -e "${YELLOW}PLEASE ENTER YOUR $USER PASSWORD IN ORDER TO CONNECT TO $database_host$ SHELL${NC}"
+        echo -e "${GREEN}we are just doing a stat command on /var/lib/mysql/centreon_storage to check tables partition state${NC}"
         tables_part_ssh=$(ssh $database_host 'echo "<DATA_BIN>" && stat -c "%Y %s" /var/lib/mysql/centreon_storage/data_bin#P#p* && echo "</DATA_BIN>" && echo "<LOGS>" && stat -c "%Y %s" /var/lib/mysql/centreon_storage/logs#P#p* && echo "</LOGS>" && echo "<LOGAH>" && stat -c "%Y %s" /var/lib/mysql/centreon_storage/log_archive_host* && echo "</LOGAH>" && echo "<LOGAS>" && stat -c "%Y %s" /var/lib/mysql/centreon_storage/log_archive_service* && echo "</LOGAS>"' < /dev/null)
         data_bin_ten_part_size=$(echo "$tables_part_ssh" | sed -n '/<DATA_BIN>/,/<\/DATA_BIN>/p' | egrep -v '<DATA_BIN>|</DATA_BIN>' | awk -v old_date="$(date --date='30 day ago' +%s )" -v new_date="$(date --date='20 day ago' +%s)" -F " " '{if ($1>=old_date && $1<=new_date)size+=$2; print size}' | tail -1)
         logs_ten_part_size=$(echo "$tables_part_ssh" | sed -n '/<LOGS>/,/<\/LOGS>/p' | egrep -v '<LOGS>|</LOGS>' | awk -v old_date="$(date --date='30 day ago' +%s )" -v new_date="$(date --date='20 day ago' +%s)" -F " " '{if ($1>=old_date && $1<=new_date)size+=$2; print size}' | tail -1)
