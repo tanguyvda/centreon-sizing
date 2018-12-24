@@ -22,10 +22,15 @@ function my_error() {
 # Get sys. informations
 #
 
-if [ "$2" == "centos" ]; then
-    os_release="other"
-else
+if [ -f /etc/redhat-release ];then
     os_release="EMS $(cat /etc/redhat-release)"
+elif [ -f /etc/debian-release ];then
+    os_release="$(cat /etc/redhat-release)"
+elif [ -f /etc/lsb-release ];then
+    . /etc/lsb-release
+    os_release=$(echo "$DISTRIB_ID $DISTRIB_RELEASE $DISTRIB_CODENAME")
+else
+    os_release="$(uname -a)"
 fi
 
 
