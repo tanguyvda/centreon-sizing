@@ -24,8 +24,8 @@ function my_error() {
 
 if [ -f /etc/redhat-release ];then
     os_release="EMS $(cat /etc/redhat-release)"
-elif [ -f /etc/debian-release ];then
-    os_release="$(cat /etc/redhat-release)"
+elif [ -f /etc/debian_version ];then
+    os_release="$(cat /etc/debian_version)"
 elif [ -f /etc/lsb-release ];then
     . /etc/lsb-release
     os_release=$(echo "$DISTRIB_ID $DISTRIB_RELEASE $DISTRIB_CODENAME")
