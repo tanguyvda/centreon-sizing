@@ -52,10 +52,11 @@ passive_service_count=$(mysql -h $database_host -u $database_user -p$database_pa
 active_service_count=$(mysql -h $database_host -u $database_user -p$database_passwd -s -N -e "SELECT count(*) FROM centreon_storage.services WHERE enabled='1' AND active_checks")
 metric_count=$(mysql -h $database_host -u $database_user -p$database_passwd -s -N -e "SELECT count(*) FROM centreon_storage.metrics")
 total_service_count=$(( $active_service_count+$passive_service_count ))
+bam_installed=$(mysql -h $database_host -u $database_user -p$database_passwd -s -N -e "SELECT id FROM centreon.modules_informations WHERE name='centreon-bam-server';")
 if [ ! -z "$bam_installed" ]; then
     ba_count=$(mysql -h $database_host -u $database_user -p$database_passwd -s -N -e "SELECT count(*) FROM centreon.mod_bam")
 else
-    ba_count=0
+    ba_count="0"
 fi
 
 ######################
